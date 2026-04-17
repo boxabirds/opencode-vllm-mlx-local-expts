@@ -1,0 +1,11 @@
+[project]
+name = "opencode-vllm-mlx"
+version = "0.1.0"
+description = "Local opencode + vllm-mlx + Qwen3.6-35B-A3B on Apple Silicon"
+requires-python = ">=3.10"
+dependencies = [
+    "vllm-mlx>=0.2.8",
+]
+
+[tool.uv]
+resolution = "highest"

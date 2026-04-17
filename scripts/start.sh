@@ -6,6 +6,7 @@ LOG_FILE="/tmp/vllm-mlx.log"
 PID_FILE="/tmp/vllm-mlx.pid"
 MODEL="Qwen/Qwen3.6-35B-A3B"
 REASONING_PARSER="qwen3"
+TOOL_CALL_PARSER="qwen3_coder"
 PORT=8899
 
 # Kill existing instance if running
@@ -19,11 +20,18 @@ if [[ -f "$PID_FILE" ]]; then
     rm -f "$PID_FILE"
 fi
 
-echo "Starting vllm-mlx with $MODEL..."
+# Disable thinking mode — it eats the output token budget before the model
+# gets to actual tool calls or code. Qwen3.x thinking uses ~4-16K tokens of
+# internal reasoning that's invisible to the user but counts against max_tokens.
+export VLLM_MLX_ENABLE_THINKING=false
+
+echo "Starting vllm-mlx with $MODEL (thinking=off)..."
 cd "$PROJECT_DIR"
 
 uv run vllm-mlx serve "$MODEL" \
     --reasoning-parser "$REASONING_PARSER" \
+    --enable-auto-tool-choice \
+    --tool-call-parser "$TOOL_CALL_PARSER" \
     --port "$PORT" \
     > "$LOG_FILE" 2>&1 &
 
